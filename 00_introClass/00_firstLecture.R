@@ -74,6 +74,8 @@ classStudents <- data.frame(age = ages, name = names)
 
 classStudents
 
+# can call a single column using $, that's very similar to then having a vector
+
 # we can also inspect in the environment using the arrow, or clicking on the object name. Can also use Ctrl+leftClick on the object name in the script
 
 # let's try to load a dataset from our computer
@@ -91,5 +93,27 @@ colnames(datasetSurvey)
 
 # can inspect in the UI
 
+# try to get more information about this dataset
+dataIris <- iris
+
+# find the names of the columns and what they mean. The type of every column -> try to find more information about what a factor is 
+head(dataIris)
+
+summary(dataIris)
+
+help(iris)
+
+# from the help 
+pairs(iris[1:4], col = iris$Species)
+legend(0.5, 1, levels(iris$Species), fill = 1:3, bty = "n",
+       horiz = TRUE, xjust = 0.5, yjust = 0, xpd = TRUE)
+
+
+# create a new column in iris that would be the ratio of sepal length to petal length (A = B+C)
+# remember the $ operator
+dataIris$ratioSP <- dataIris$Sepal.Length/dataIris$Petal.Length
+
+# maybe talk about errors, how gpt can help you understand why you get an error, but be careful!!!!!
+# also show how to use stack overflow
 
 
