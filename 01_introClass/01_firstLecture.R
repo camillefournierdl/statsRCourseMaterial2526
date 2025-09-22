@@ -12,9 +12,9 @@
 
 # if not, setwd("path") -> can also navigate using the files UI and use the More -> Set as working Directory tool
 
-# create a folder using dir.create(), you can name it 00_introClass
+# create a folder using dir.create(), you can name it 01_introClass
 
-# in there, create a new R script (New File, R Script). You can name it 00_script.R
+# in there, create a new R script (New File, R Script). You can name it 01_script.R
 
 # Now we see a new panel in RStudio. That's your script. 
 
@@ -80,11 +80,11 @@ classStudents
 
 # let's try to load a dataset from our computer
 
-read.csv("00_introClass/data/ESS10_CHData.csv")
+read.csv("01_introClass/data/ESS10_CHData.csv")
 
 # now save it into an object
 
-datasetSurvey <- read.csv("00_introClass/data/ESS10_CHData.csv")
+datasetSurvey <- read.csv("01_introClass/data/ESS10_CHData.csv")
 datasetSurvey
 
 # looks complicated
@@ -115,5 +115,11 @@ dataIris$ratioSP <- dataIris$Sepal.Length/dataIris$Petal.Length
 
 # maybe talk about errors, how gpt can help you understand why you get an error, but be careful!!!!!
 # also show how to use stack overflow
+
+# bonus: equivalent using tidyverse (dplyr)
+library(tidyverse)
+
+dataIris <- dataIris %>% 
+  mutate(ratioSP = Sepal.Length/Petal.Length)
 
 
