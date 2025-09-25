@@ -93,8 +93,10 @@ colnames(datasetSurvey)
 
 # can inspect in the UI
 
-# try to get more information about this dataset
+# here we load the iris dataset, a dataset that's installed with R
 dataIris <- iris
+
+# try to get more information about this dataset (help, use the help function! Or F1.. or google it)
 
 # find the names of the columns and what they mean. The type of every column -> try to find more information about what a factor is 
 head(dataIris)

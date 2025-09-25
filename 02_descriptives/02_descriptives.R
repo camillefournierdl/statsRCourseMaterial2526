@@ -1,6 +1,36 @@
-# Let's take the examples from the book, 3.22, 3.23 & 3.74
+##### General comment:
+### I won't go over the basics of ggplot in this class, but we use it for visualisation.
+### If you already understand the basics of the current code, # but not the ggplot parts,
+### here is an excellent introduction on how to use ggplot for data visualisation: https://r4ds.hadley.nz/data-visualize.html
+### I will quickly go over this ggplot material in a future course
+
+# solution from the quiz (in-class exercice)
+
+dataset <- c(20, 40, 5, 15, 10, 25, 20, 35, 30)
+
+mean(dataset)
+median(dataset)
+mode(dataset) # doesn't do that... check the help() function!
+# try googling it! how to calculate a mode in R?
+# we use a "estimate_mode" function later, that I got from ChatGPT
+
+Mode <- function(x) {
+  ux <- unique(x)
+  ux[which.max(tabulate(match(x, ux)))]
+}
+
+Mode(dataset)
+
+sd(dataset) # is this using n or n-1? what's the difference?
+
+# what if I add an outlier? see last optional example below
+# an exercice could be to edit the dataset including the outlier (75) and calculate the descriptives again
+
+# Now, let's take the examples from the book, 3.22, 3.23 & 3.74
 
 library(tidyverse) # for data handling (dplyr), the pipe operator, and plotting (ggplot2)
+
+# to make sure you're using function from a given library, use dplyr::filter()
 
 # ------------ 3.22 ------------
 # A report published by a survey agency on the number of female workers (in millions) 
@@ -55,14 +85,14 @@ mean_africa <- mean(africa)
 mean_europe
 mean_africa
 
-# (b) Calculate the standard deviation for each region
+# (b) Calculate the standard deviation for each region, if this is a sample
 sd_europe <- sd(europe)
 sd_africa <- sd(africa)
 
 # equivalent to doing it 'by hand':
 dev <- europe - mean(europe) # this would be the deviations from the mean (see how we have one value per country) -> print(dev)
 ssd <- sum(dev^2) # sum of squares dev
-variance <- ssd / (length(europe)-1)
+variance <- ssd / (length(europe)-1) #n-1 if this is a sample
 sqrt(variance)
 
 sd_europe
@@ -95,7 +125,6 @@ ggplot(df, aes(x = region, y = workers, fill = region)) +
 
 # it is interesting to note that this is different from using SD.
 
-
 # ------------ 3.23 ------------
 # A report indicates that teacher’s total annual pay
 # (including bonuses) in Toronto, Ontario, has a mean of
@@ -103,7 +132,7 @@ ggplot(df, aes(x = region, y = workers, fill = region)) +
 # Suppose the distribution has approximately a bell shape.
 
 # (a) Give an interval of values that contains about (i) 68%,
-# (ii) 95%, (iii) all or nearly all salaries
+# (ii) 95%, (iii) or nearly all salaries
 
 # (b) Would a salary of $100,000 be unusual? Why?
 
@@ -218,6 +247,7 @@ ggplot(sim_data, aes(x = score, fill = group)) +
 ggplot(sim_data, aes(x = score, fill = group)) +
   geom_histogram(alpha = 0.5, position = "dodge")
 
+library(viridis) # color scale
 ggplot(sim_data, aes(x = score, fill = group)) +
   geom_histogram(alpha = 0.5, position = "identity")+
   # Add mean line for U.S. citizens
@@ -225,9 +255,7 @@ ggplot(sim_data, aes(x = score, fill = group)) +
   # Add mean line for Non-U.S. citizens
   geom_vline(xintercept = nonus_mean, linetype = "dashed", size = 1, color = viridis(2)[1])
 
-
 # density plot with labels, theme and color scale
-library(viridis)
 ggplot(sim_data, aes(x = score, fill = group)) +
   geom_density(alpha = 0.5) +
   scale_fill_viridis(discrete = T)+
@@ -236,4 +264,149 @@ ggplot(sim_data, aes(x = score, fill = group)) +
        y = "Density",
        fill = "Group") +
   theme_minimal()
+
+# ------------ (optional) Mean vs Median vs Mode ------------
+# This section was initially written by ChatGPT and reviewed by Camille F.
+
+# Helper: estimate the mode for *continuous* data using the peak of a kernel density -> there are other ways of calculating the mode of a distribution, especially for bimodal examples
+estimate_mode <- function(x) {
+  d <- density(x, na.rm = TRUE)
+  d$x[which.max(d$y)]
+}
+
+# 1) Build the three datasets
+n <- 1000 # nb of rows (observations)
+
+# also try with smaller n
+# n <- 100
+
+# Symmetric normal
+x_sym <- rnorm(n, mean = 50, sd = 10)
+
+# Right-skewed: log-normal-ish (exponentiate a normal)
+x_skew <- rlnorm(n, meanlog = log(40), sdlog = 0.4)
+
+# Bimodal: mixture of two normals
+x_bi <- c(rnorm(n/2, mean = 40, sd = 6),
+          rnorm(n/2, mean = 70, sd = 6))
+
+# Put them in one long tibble, with a label for each scenario
+# note: here tibble is equivalent to data.frame()
+df <- bind_rows(
+  tibble(value = x_sym,  scenario = "Symmetric (Normal)"),
+  tibble(value = x_skew, scenario = "Right-skewed"),
+  tibble(value = x_bi,   scenario = "Bimodal")
+)
+
+# equivalent to a more common form: 
+# df1 <- data.frame(value = x_sym,  scenario = "Symmetric (Normal)")
+# df2 <- data.frame(value = x_skew,  scenario = "Right-skewed")
+# df3 <- data.frame(value = x_bi,  scenario = "Bimodal")
+# df <- rbind(df1, df2, df3)
+
+# 2) Compute mean, median, mode per scenario
+# this code here is using dplyr, we can spend some time explaining how it works if we have the time
+stats <- df %>%
+  group_by(scenario) %>%
+  summarize(
+    mean   = mean(value),
+    median = median(value),
+    mode   = estimate_mode(value),     # density-based mode estimate
+  ) %>%
+  pivot_longer(cols = c(mean, median, mode),
+               names_to = "stat", values_to = "value")
+
+# We'll order the legend nicely
+stats$stat <- factor(stats$stat, levels = c("mean", "median", "mode")) # factors can be useful to treat categorical data
+
+# 3) Plot: histogram + density + vertical lines for mean/median/mode
+# explain different steps of the graph if we have time, otherwise ggplot explanation next week?
+ggplot(df, aes(x = value)) +
+  geom_histogram(aes(y = after_stat(density)), bins = 30, alpha = 0.35) +
+  geom_density(linewidth = 1) +
+  # Draw the three reference lines from the stats table (enables a clean legend)
+  geom_vline(data = stats,
+             aes(xintercept = value, color = stat),
+             linewidth = 1, linetype = "dashed") +
+  scale_color_manual(values = c(mean = "#1f77b4", median = "#2ca02c", mode = "#d62728"),
+                     name = "Statistic",
+                     labels = c("Mean", "Median", "Mode (estimated)")) +
+  facet_wrap(~ scenario, scales = "free", ncol = 1) +
+  labs(title = "Mean vs Median vs Mode across different shapes",
+       x = "Value", y = "Density") +
+  theme_minimal(base_size = 12)
+
+# 4) (Optional) Print the numeric summaries for discussion
+stats %>%
+  pivot_wider(names_from = stat, values_from = value) %>% # opposite of pivot_longer
+  arrange(scenario) %>%
+  print(n = Inf)
+
+
+# ------------ (optional) Mean vs Median vs Mode, impact of outliers ------------
+
+# 1) Build the three datasets
+# n <- 1000 # nb of rows (observations)
+
+# also try with smaller n
+n <- 100
+
+# Symmetric normal
+x_sym <- rnorm(n, mean = 50, sd = 10)
+
+# Right-skewed: log-normal-ish (exponentiate a normal)
+x_skew <- rlnorm(n, meanlog = log(40), sdlog = 0.4)
+
+# Bimodal: mixture of two normals
+x_bi <- c(rnorm(n/2, mean = 40, sd = 6),
+          rnorm(n/2, mean = 70, sd = 6))
+
+# Put them in one long tibble, with a label for each scenario
+# note: here tibble is equivalent to data.frame()
+
+#### could run this variation here to look at the impact of outliers:
+df <- bind_rows(
+  tibble(value = x_sym,  scenario = "1. Symmetric (Normal)"),
+  tibble(value = c(x_sym, 200), scenario = "2. One outlier"),
+  tibble(value = c(x_sym, 150, 200, 500),   scenario = "3. Three larger outliers")
+)
+
+# 2) Compute mean, median, mode per scenario
+# this code here is using dplyr, we can spend some time explaining how it works if we have the time
+stats <- df %>%
+  group_by(scenario) %>%
+  summarize(
+    mean   = mean(value),
+    median = median(value),
+    mode   = estimate_mode(value),     # density-based mode estimate
+  ) %>%
+  pivot_longer(cols = c(mean, median, mode),
+               names_to = "stat", values_to = "value")
+
+# We'll order the legend nicely
+stats$stat <- factor(stats$stat, levels = c("mean", "median", "mode")) # factors can be useful to treat categorical data
+
+# 3) Plot: histogram + density + vertical lines for mean/median/mode
+# explain different steps of the graph if we have time, otherwise ggplot explanation next week?
+ggplot(df, aes(x = value)) +
+  geom_histogram(aes(y = after_stat(density)), bins = 30, alpha = 0.35) +
+  geom_density(linewidth = 1) +
+  # Draw the three reference lines from the stats table (enables a clean legend)
+  geom_vline(data = stats,
+             aes(xintercept = value, color = stat),
+             linewidth = 1, linetype = "dashed") +
+  scale_color_manual(values = c(mean = "#1f77b4", median = "#2ca02c", mode = "#d62728"),
+                     name = "Statistic",
+                     labels = c("Mean", "Median", "Mode (estimated)")) +
+  facet_wrap(~ scenario, scales = "free", ncol = 1) +
+  labs(title = "Mean vs Median vs Mode across different shapes",
+       x = "Value", y = "Density") +
+  xlim(10, 90)+
+  theme_minimal(base_size = 12)
+
+# 4) (Optional) Print the numeric summaries for discussion
+stats %>%
+  pivot_wider(names_from = stat, values_from = value) %>% # opposite of pivot_longer
+  arrange(scenario) %>%
+  print(n = Inf)
 
