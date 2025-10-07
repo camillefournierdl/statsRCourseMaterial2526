@@ -7,6 +7,41 @@ set.seed(123)
 
 #### Confidence Intervals ####
 
+### One sample distribution: CIs of a mean
+# Assumes i.i.d. draws; uses t with length(x)-1 df and sd(x)/sqrt(n).
+ci <- t.test(iris$Sepal.Width, conf.level = 0.95)$conf.int
+ci
+
+# if you need to interact with it, like for plotting: 
+ci[1] # is the lower bound
+# what's the upper bound going to be?
+
+# equivalent to:
+n  <- length(iris$Sepal.Width)
+se <- sd(iris$Sepal.Width) / sqrt(n)
+m  <- mean(iris$Sepal.Width)
+half_width <- qt(0.975, df = n - 1) * se
+c(m - half_width, m + half_width)
+
+# >> already relevant: the ci is dependent on the distribution we want to draw the z-scores from (and the se calculation) -> assumptions!!
+
+# bonus example of a bootstrap ci
+B <- 2000
+boot_means <- replicate(B, mean(sample(iris$Sepal.Width, replace = TRUE)))
+quantile(boot_means, c(0.025, 0.975))         # Percentile CI
+# here is a great illustration of a permutation test for 2 samples: https://www.jwilber.me/permutationtest/
+
+### For a one-sample proportion
+# x = number of successes, n = trials
+# prop.test(x, n, conf.level = 0.95)$conf.int   # Wilson-ish (score) CI with continuity correction
+prop.test(1104, 1824, conf.level = 0.95)$conf.int   # >> look at the help function!
+
+### For a two-sample difference in mean
+# t.test(x1, x2, var.equal = FALSE)$conf.int    # Welch CI for μ1 - μ2
+t.test(c(2, 7, 2, 8, 10, 5), c(5, 8, 7, 9, 10, 10), var.equal = FALSE)$conf.int    # Welch CI for μ1 - μ2
+
+# >> what are the assumptions of all these different tests? t.test with var.equal = T, t.test with var.equal = F?
+# -> alternatives can be bootstraps, permutations, or non-parametric tests
 
 #### Comparing samples ####
 
@@ -14,7 +49,7 @@ irisData <- iris
 
 plot(irisData)
 
-# visualise 2 populations (maybe use the iris dataset)
+# compare populations
 
 irisData %>% 
   ggplot(aes(y = Sepal.Width, fill = Species))+
@@ -39,11 +74,8 @@ irisData %>%
 # how do we test whether two species have a different mean for that variable in the example?
 # essentially we do an inference on the distribution of the mean of the original population from which these samples were drawn from:
 
-
-
-
-
 # use the help to look at what t.test() does (e.g. what is the default behavior & assumptions? paired samples? equal variance?)
+# >> t.test isn't actually a simple student t-test by default...
 
 t.test(irisData %>% #sample1
          filter(Species == "versicolor") %>% 
@@ -61,7 +93,32 @@ t.test(irisData %>% #sample1
          pull(Sepal.Width)
 )
 
-# welch test
+t.test(irisData %>% #sample1
+         filter(Species == "virginica") %>% 
+         pull(Sepal.Width),
+       irisData %>% #sample2
+         filter(Species != "virginica") %>% 
+         pull(Sepal.Width),
+       alternative = "greater"
+)
+
+t.test(irisData %>% #sample1
+         filter(Species == "virginica") %>% 
+         pull(Sepal.Width),
+       irisData %>% #sample2
+         filter(Species != "virginica") %>% 
+         pull(Sepal.Width),
+       alternative = "less"
+)
+
+# >> it is fairly easy to run a t.test (welch, proportion, or other 1 or 2 sample, one or two sided tests)
+# >> what might be more complicated, is to understand what a test actually does. 
+# >> the following code, and resulting plots are meant to explore the concepts that range from
+# >> the description of 2 plant samples (and the width of their sepal)
+# >> to the test statistic that evaluates how likely the two samples are coming from different populations.
+
+# >> I would like to spend some time discussing the final plot. If one concept is not clear to you, maybe the code can help clarify it. 
+# >> if the code doesn't help, you can talk to us, go back to Agresti, or use a ChatBot to explain it. With, or without the code.
 
 #### Visualizing how a t.test works #### 
 # pick the two species to compare
@@ -70,7 +127,7 @@ pair <- c("virginica","versicolor")
 dat2 <- irisData %>% filter(Species %in% pair)
 
 # Welch t-test on Sepal.Width
-tt <- t.test(Sepal.Width ~ Species, data = dat2, var.equal = FALSE)
+t.test(Sepal.Width ~ Species, data = dat2)
 
 # Per-species summaries
 summ <- dat2 %>% 
@@ -176,4 +233,5 @@ p3 <- ggplot(null_dens, aes(x = t, y = density)) +
 
 wrap_plots(p0, p1, p2, p3, ncol = 2)
 
-
+# >> once we have understood the different steps going through this visualization, we can be more comfortable to just type in a t.test(sample1, sample2) line ;)....
+t.test(Sepal.Width ~ Species, data = dat2)
