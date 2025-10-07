@@ -4,6 +4,9 @@ library(tidyverse)
 
 set.seed(123) # reproducibility
 
+# a tutorial on how to use ggplot:
+# > https://r4ds.hadley.nz/data-visualize.html
+
 #### how to simulate a test distribution, and compare it with an observed sample ####
 # example 4.11 from the book
 
@@ -34,6 +37,12 @@ ggplot(data, aes(x = prop_Brown)) +
     y = "Count"
   ) +
   theme_minimal()
+
+# simpler version (how I would plot it quickly)
+# ggplot(data, aes(x = prop_Brown)) +
+#   geom_histogram(binwidth = 0.005, fill = "skyblue", color = "white") +
+#   geom_vline(xintercept = 0.605, color = "red", linetype = "dashed", size = 1)
+
 
 # calculation of a z-score:
 p_hat <- 0.605 # observed probability in sample
@@ -110,3 +119,8 @@ ggplot(df2, aes(x2, y2)) +
   ) +
   theme_minimal()
 
+# simpler version (how I would plot it quickly)
+# ggplot(df2, aes(x = x2, y = y2)) +
+#   geom_area(data = subset(df2, x2 >= z), aes(x = x2, y = y2), fill = "red", alpha = 0.3) +
+#   geom_line(color = "steelblue", size = 1) + # geom_point could also do the job
+#   geom_vline(xintercept = z, color = "red", linetype = "dashed")
