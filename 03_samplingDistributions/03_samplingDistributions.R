@@ -7,8 +7,146 @@ set.seed(123) # reproducibility
 # a tutorial on how to use ggplot:
 # > https://r4ds.hadley.nz/data-visualize.html
 
-#### how to simulate a test distribution, and compare it with an observed sample ####
-# example 4.11 from the book
+#### 4.9 ####
+# For a normal distribution, verify that the probability between
+# (a) μ − σ and μ + σ equals 0.68.
+# (b) μ − 1.96σ and μ + 1.96σ equals 0.95.
+# (c) μ − 3σ and μ + 3σ equals 0.997.
+# (d) μ − 0.67σ and μ + 0.67σ equals 0.50.
+
+# P(μ−kσ<X<μ+kσ)=P(−k<Z<k) # >> remember this!  
+
+## - Visual + computation for P(μ-σ < X < μ+σ) -
+
+## 1) Plot the standard normal and shade area between -1 and 1
+z <- seq(-4, 4, length.out = 1000)
+df <- data.frame(z = z, dens = dnorm(z))
+
+z_left  <- -1
+z_right <-  1
+
+ggplot(df, aes(z, dens)) +
+  geom_line(size = 0.7) +
+  geom_ribbon(
+    data = subset(df, z >= z_left & z <= z_right),
+    aes(ymin = 0, ymax = dens),
+    alpha = 0.4
+  ) +
+  geom_vline(xintercept = c(z_left, z_right), linetype = "dashed") +
+  labs(
+    x = "z",
+    y = "Density",
+    title = "Standard Normal: shaded area = P(-1 < Z < 1)"
+  ) +
+  annotate("text", x = 0, y = dnorm(0)*0.6, label = "P(-1 < Z < 1)")
+
+
+##### optional (will be done on whiteboard in class) #####
+# probabilities
+p_left  <- pnorm(z_left)            # P(Z < -1)
+p_right <- pnorm(z_right)           # P(Z <  1)
+p_mid   <- p_right - p_left         # P(-1 < Z < 1)
+
+# build a long data frame with which area to shade in each panel
+df_long <- bind_rows(
+  df %>% mutate(panel = "P(Z < 1)",     shade = ifelse(z <= z_right, dens, NA_real_)),
+  df %>% mutate(panel = "P(Z < -1)",    shade = ifelse(z <= z_left,  dens, NA_real_)),
+  df %>% mutate(panel = "P(-1 < Z < 1)",shade = ifelse(z >= z_left & z <= z_right, dens, NA_real_))
+)
+
+# labels to annotate each facet with its numeric value
+ann <- data.frame(
+  panel = c("P(Z < 1)", "P(Z < -1)", "P(-1 < Z < 1)"),
+  x     = c(-3.7, -3.7, -3.7),
+  y     = c(dnorm(0)*0.9, dnorm(0)*0.9, dnorm(0)*0.9),
+  lab   = c(
+    sprintf("= %.4f", p_right),
+    sprintf("= %.4f", p_left),
+    sprintf("= %.4f", p_mid)
+  )
+)
+
+ggplot(df_long, aes(z, dens)) +
+  geom_line(size = 0.7) +
+  geom_ribbon(aes(ymin = 0, ymax = shade), alpha = 0.35, na.rm = TRUE) +
+  geom_vline(xintercept = c(z_left, z_right), linetype = "dashed") +
+  facet_wrap(~ panel, nrow = 3) +
+  labs(
+    x = "z",
+    y = "Density",
+    title = "Areas under the Standard Normal: P(Z<1), P(Z<-1), and their difference P(-1<Z<1)"
+  ) +
+  geom_text(data = ann, aes(x = x, y = y, label = lab), inherit.aes = FALSE)
+
+
+## 2) Compute the probability using pnorm()
+
+# (i) Standard normal version: P(-1 < Z < 1)
+p_std <- pnorm(1) - pnorm(-1)        # same as 2*pnorm(1) - 1
+p_std
+
+# (ii) Equivalent computation on any N(mu, sigma^2): P(mu - sigma < X < mu + sigma)
+mu    <- 10
+sigma <- 3
+p_x <- pnorm(mu + sigma, mean = mu, sd = sigma) -
+  pnorm(mu - sigma, mean = mu, sd = sigma)
+p_x
+
+# They are (and should be) the same:
+abs(p_std - p_x)
+
+## b, (or by extension, c & d) can be calculated by replacing the 'sigma' value here:
+p_std <- pnorm(1.96) - pnorm(-1.96)        # same as 2*pnorm(1.96) - 1
+p_std
+
+
+#### 4.10 ####
+
+# Find the z-value for which the probability that a normal variable exceeds μ + zσ equals 
+# (a) 0.01, (b) 0.025, (c) 0.05, (d) 0.10, (e) 0.25, (f) 0.50
+
+qnorm(1 - 0.01) # this is the simple way of doing it
+
+# next I propose a visualisation + a way to do it for multiple values
+
+# Target tail probabilities
+alpha <- c(0.01, 0.025, 0.05, 0.10, 0.25, 0.50)
+
+# z such that P(Z > z) = alpha
+z <- qnorm(1 - alpha)
+
+# Quick table (z rounded) + check via pnorm()
+res <- data.frame(alpha = alpha, z = round(z, 3),
+                  check = round(pnorm(z, lower.tail = FALSE), 3))
+print(res)
+
+# - Plot: shade right-tail area α in each panel 
+zgrid <- seq(-4, 4, length.out = 2000)
+base  <- data.frame(z = zgrid, dens = dnorm(zgrid))
+
+# Build a small dataframe for facets (one per alpha)
+labels <- paste0("α = ", alpha, "  (z = ", sprintf("%.2f", z), ")")
+plot_df <- do.call(rbind, lapply(seq_along(alpha), function(i) {
+  df <- base
+  df$panel <- labels[i]
+  df$shade <- ifelse(df$z >= z[i], df$dens, NA_real_)
+  df
+}))
+vlines <- data.frame(panel = labels, x = z)
+
+ggplot(plot_df, aes(z, dens)) +
+  geom_line() +
+  geom_ribbon(aes(ymin = 0, ymax = shade), alpha = 0.35, na.rm = TRUE) +
+  geom_vline(data = vlines, aes(xintercept = x), linetype = "dashed") +
+  facet_wrap(~ panel, nrow = 2) +
+  labs(title = "Standard Normal: P(Z > z) = α",
+       x = "z", y = "Density") +
+  theme_minimal()
+
+
+#### Normal distribution + z-score for a proportion variable (votes for Brown) ####
+
+# example 4.11 from the book (in the course section, not the exercices)
 
 # Set parameters
 n <- 1824       # number of voters
@@ -63,14 +201,14 @@ z
 
 # >> this tells us that the population from which we sampled might be different from the one we simulated (mean = 0.5)
 
-#### example (try to think how to do it yourself) ####
+##### example (try to think how to do it yourself) #####
 # ?> how would you visualize the likelihood of the population's sample mean to be 0.6 (if the observed sample is 0.6, with n = 1824)
 
 p_hat <- 0.605 # observed probability in sample
 p0 <- 0.6 # theoretical probability from population if votes are spread 60-40
 n <- 1824 # pop size
 
-z <- (p_hat - p0) / sqrt(p0 * (1 - p0) / n) # formula for proportion z-score
+z <- (p_hat - p0) / sqrt(p0 * (1 - p0) / n) # formula for proportion z-score, no direct way of doing this for a proportion in R (we'll cover it in the Chi2 chapters)
 
 z
 
@@ -125,9 +263,8 @@ ggplot(df2, aes(x2, y2)) +
 #   geom_line(color = "steelblue", size = 1) + # geom_point could also do the job
 #   geom_vline(xintercept = z, color = "red", linetype = "dashed")
 
-#### now an example with a continuous variable (not a proportion) ####
-
 #### Normal distribution + z-score for a continuous variable (heights) ####
+# made up example
 # Suppose adult heights (in cm) are approximately Normal with:
 mu <- 170   # population mean height
 sigma <- 8  # population sd
@@ -187,13 +324,14 @@ ggplot(df_z, aes(z, dens)) +
   theme_minimal()
 
 #### Z-score for a sample mean (CLT / sampling distribution) ####
-# Draw a sample of n individuals and test whether its mean differs from mu
+# using the same population from the previous example
+# Draw a sample of n individuals and visualize whether its mean differs from mu
 
 n <- 36
 samp <- sample(heights$height, size = n, replace = TRUE)
 xbar <- mean(samp)
 
-# Under H0: mean = mu with known sigma, the sampling distribution is Normal(mu, sigma/sqrt(n))
+# if the sample comes from the underlying distribution: mean = mu with known sigma, the sampling distribution is Normal(mu, sigma/sqrt(n))
 se <- sigma / sqrt(n)
 z_xbar <- (xbar - mu) / se
 p_two_mean <- 2 * (1 - pnorm(abs(z_xbar)))
@@ -250,26 +388,31 @@ creatingPlot <- function(heights_vec, mu, sigma, n = 36) {
     geom_area(data = subset(df_samp, x >= mu + diffMu), aes(x, y), fill = "red", alpha = 0.25) +
     geom_area(data = subset(df_samp, x <= mu - diffMu), aes(x, y), fill = "red", alpha = 0.25) +
     geom_vline(xintercept = xbar, color = "red", linetype = "dashed") +
-    annotate("text", x = xbar - 0.05*xbar, y = ymax * 0.9,
+    annotate("text", x = xbar - 0.01*xbar, y = ymax * 0.9,
              label = paste0("Observed x̄ = ", round(xbar, 2), " cm"),
-             color = "red", hjust = -0.05) +
-    annotate("text", x = mu + 0.5 * se, y = ymax * 0.55,
+             color = "red", hjust = 0) +
+    annotate("text", x = mu - 0.5 * se, y = ymax * 0.55,
              label = paste0("z = ", round(z_xbar, 2),
                             "\nTwo-sided p = ", signif(p_two_mean, 3)))+
+    # xlim(150,180)+ # could help see the difference when playing with different sigma & n -> (Ctrl + Shift + C) to comment/uncomment
     theme_minimal()
 }
 
 # - build N plots as a list
-set.seed(1)
 plots <- replicate(
   12,                                                  # how many plots you want
-  creatingPlot(heights_vec = heights$height, mu = mu, sigma = sigma, n = 36),
+  creatingPlot(heights_vec = heights$height, mu = mu, sigma = sigma, n = 2),
   simplify = FALSE
 )
 
-# ---- A) 5 x 4 grid on one panel ----
+# - A) 5 x 4 grid on one panel -
 # using patchwork
 wrap_plots(plots, nrow = 3, ncol = 4)
 
-# > remember that we are using mu and sigma from a population (we assume we know these), normally you'd have to use an estimate of that, based on your sample(s)
+# >> remember that we are using mu and sigma from a population (we assume we know these), normally you'd have to use an estimate of that, based on your sample(s)
 # ?> question: what happens if I change sigma, or n? Are z, and p, going to be larger, smaller, or the same?
+
+
+
+
+
