@@ -1,0 +1,2 @@
+# Exclude HTML codebooks and generated artifacts from language statistics
+*.html linguist-detectable=false
