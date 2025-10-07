@@ -23,8 +23,8 @@ of the course will focus on implementing these techniques in R, as well as devel
 practical skills in the language required to be able to independently conduct basic data analysis in research projects.
 
 **Instructors:**  
-Dr E. Keith Smith ([esmith@ethz.ch](esmith@ethz.ch))  
-Camille Fournier de Lauriere ([cfournier@ethz.ch](cfournier@ethz.ch))
+Dr E. Keith Smith ([esmith@ethz.ch](mailto:esmith@ethz.ch))  
+Camille Fournier de Lauriere ([cfournier@ethz.ch](mailto:cfournier@ethz.ch))
 
 ---
 
