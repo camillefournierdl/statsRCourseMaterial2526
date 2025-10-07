@@ -235,3 +235,12 @@ wrap_plots(p0, p1, p2, p3, ncol = 2)
 
 # >> once we have understood the different steps going through this visualization, we can be more comfortable to just type in a t.test(sample1, sample2) line ;)....
 t.test(Sepal.Width ~ Species, data = dat2)
+
+
+#### Other tests ####
+
+### Paired t.test ###
+
+### Proportion test ###
+
+
