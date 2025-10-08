@@ -6,8 +6,8 @@
 
 ## 🔗 Quick links
 
-- 📅 **Schedule:** see Syllabus
-- 🧾 **Syllabus (PDF):** [`/generalFiles/Syllabus_Data Analysis_HS25.pdf`](./generalFiles/Syllabus_Data Analysis_HS25.pdf) 
+- 📅 **Schedule:** see Syllabus (mostly Wednesday 14:00-16:00)
+- 🧾 **Syllabus (PDF):** [`/generalFiles/Syllabus_DataAnalysis_HS25.pdf`](./generalFiles/Syllabus_DataAnalysis_HS25.pdf) 
 - 📦 **Datasets:** [`/ESSData`](./ESSData)  
 
 <!-- 🧪 **Assignments:** [`/assignments`](./assignments) -->
