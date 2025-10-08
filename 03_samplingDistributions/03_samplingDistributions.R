@@ -4,6 +4,11 @@ library(tidyverse)
 
 set.seed(123) # reproducibility
 
+# In this class, we're still using pretty basic functions. 
+# The most important knowledge might not be to know how these functions work, you can always google it, check the help?, ask chatgpt.
+# Rather, we focus on visualizing what we're doing, and creating links between the empirical part (how would you do it by hand), and the computations.
+# As such, the code contains simulations of distributions, and ggplots, which are meant for illustrating more than for you to learn how to use.
+
 # a tutorial on how to use ggplot:
 # > https://r4ds.hadley.nz/data-visualize.html
 
@@ -40,10 +45,10 @@ ggplot(df, aes(z, dens)) +
   ) +
   annotate("text", x = 0, y = dnorm(0)*0.6, label = "P(-1 < Z < 1)")
 
-
-##### optional (will be done on whiteboard in class) #####
+### optional (will be done on whiteboard in class) ###
 # probabilities
-p_left  <- pnorm(z_left)            # P(Z < -1)
+p_left  <- pnorm(z_left)            # P(Z < -1) -> that's the behavior of the function, it calculates the Area Under the Curve (AUC) on the left of the value
+# you could calculate the AUC on the right side by using pnorm(z_left, lower.tail = F) -> check what the default behavior is in the help?
 p_right <- pnorm(z_right)           # P(Z <  1)
 p_mid   <- p_right - p_left         # P(-1 < Z < 1)
 
@@ -82,30 +87,35 @@ ggplot(df_long, aes(z, dens)) +
 ## 2) Compute the probability using pnorm()
 
 # (i) Standard normal version: P(-1 < Z < 1)
-p_std <- pnorm(1) - pnorm(-1)        # same as 2*pnorm(1) - 1
+p_std <- pnorm(1) - pnorm(-1)        # same as 2*pnorm(1) - 1 (mathematical property of the symmetry, you can draw it by hand)
 p_std
 
-# (ii) Equivalent computation on any N(mu, sigma^2): P(mu - sigma < X < mu + sigma)
+# (ii) Equivalent computation on any N(mu, sigma^2): P(mu - sigma < X < mu + sigma) 
+# >> just to show you that you can use these functions directly without calculating a z-score in case you're working with "real data"
 mu    <- 10
 sigma <- 3
 p_x <- pnorm(mu + sigma, mean = mu, sd = sigma) -
   pnorm(mu - sigma, mean = mu, sd = sigma)
 p_x
 
-# They are (and should be) the same:
-abs(p_std - p_x)
-
 ## b, (or by extension, c & d) can be calculated by replacing the 'sigma' value here:
 p_std <- pnorm(1.96) - pnorm(-1.96)        # same as 2*pnorm(1.96) - 1
 p_std
 
+p_std <- pnorm(3) - pnorm(-3)       
+
+p_std <- pnorm(0.67) - pnorm(-0.67)
+p_std
+
+# >> in the next example we go from the probability to the z-score
 
 #### 4.10 ####
 
 # Find the z-value for which the probability that a normal variable exceeds μ + zσ equals 
 # (a) 0.01, (b) 0.025, (c) 0.05, (d) 0.10, (e) 0.25, (f) 0.50
 
-qnorm(1 - 0.01) # this is the simple way of doing it
+qnorm(1 - 0.01) # this is the simple way of doing it 
+# note that the behavior is the area under the curve on the left of the computed quantile
 
 # next I propose a visualisation + a way to do it for multiple values
 
@@ -143,7 +153,6 @@ ggplot(plot_df, aes(z, dens)) +
        x = "z", y = "Density") +
   theme_minimal()
 
-
 #### Normal distribution + z-score for a proportion variable (votes for Brown) ####
 
 # example 4.11 from the book (in the course section, not the exercices)
@@ -180,7 +189,6 @@ ggplot(data, aes(x = prop_Brown)) +
 # ggplot(data, aes(x = prop_Brown)) +
 #   geom_histogram(binwidth = 0.005, fill = "skyblue", color = "white") +
 #   geom_vline(xintercept = 0.605, color = "red", linetype = "dashed", size = 1)
-
 
 # calculation of a z-score:
 p_hat <- 0.605 # observed probability in sample
@@ -328,18 +336,21 @@ ggplot(df_z, aes(z, dens)) +
 # Draw a sample of n individuals and visualize whether its mean differs from mu
 
 n <- 36
-samp <- sample(heights$height, size = n, replace = TRUE)
-xbar <- mean(samp)
+samp <- sample(heights$height, size = n, replace = TRUE) # that's the sample, you can print(samp)
+xbar <- mean(samp) # observed sample mean
+
+## >> Big underlying question: what is the likelihood of observing a mean that's THAT different, when sampling from that population randomly? 
 
 # if the sample comes from the underlying distribution: mean = mu with known sigma, the sampling distribution is Normal(mu, sigma/sqrt(n))
 se <- sigma / sqrt(n)
-z_xbar <- (xbar - mu) / se
-p_two_mean <- 2 * (1 - pnorm(abs(z_xbar)))
+z_xbar <- (xbar - mu) / se # calculate the z-score for that sample
+p_two_mean <- 2 * (1 - pnorm(abs(z_xbar))) # and the two-sided area under the curve for a given z-score 
+# (we don't care whether it's larger or smaller, in this example) 
 
 xbar
 z_xbar
 p_two_mean
-diffMu <- abs(xbar - mu)
+diffMu <- abs(xbar - mu) # absolute difference in means
 
 # Visualize the sampling distribution and the observed sample mean
 x_samp <- seq(mu - 4*se, mu + 4*se, length.out = 400)
@@ -364,10 +375,12 @@ ggplot(df_samp, aes(x, y)) +
   ) +
   theme_minimal()
 
-### here let's visualise what happens if we run this 20 times
+### let's visualise what happens if we run this 20 times
 
 # install.packages('patchwork')
 library(patchwork)
+
+# this is a function that allows me to sample the population with a given mu, sigma, and n, so I can do that multiple times
 
 creatingPlot <- function(heights_vec, mu, sigma, n = 36) {
   samp <- sample(heights_vec, size = n, replace = TRUE)
@@ -398,7 +411,7 @@ creatingPlot <- function(heights_vec, mu, sigma, n = 36) {
     theme_minimal()
 }
 
-# - build N plots as a list
+# - build N plots as a list, calling the function inside replicate (here, I do it 12 times, it is the first argument of the following code)
 plots <- replicate(
   12,                                                  # how many plots you want
   creatingPlot(heights_vec = heights$height, mu = mu, sigma = sigma, n = 2),
@@ -407,12 +420,17 @@ plots <- replicate(
 
 # - A) 5 x 4 grid on one panel -
 # using patchwork
-wrap_plots(plots, nrow = 3, ncol = 4)
+wrap_plots(plots, nrow = 3, ncol = 4) # plotting all together
+
+## >> Reminder -- Big underlying question: what is the likelihood of observing a mean that's THAT different, when sampling from that population randomly? 
+
+# >> If you would run this simulation enough times, you'd have some instances where the sampled mean was quite different from the population. It is less likely, but still possible. 
 
 # >> remember that we are using mu and sigma from a population (we assume we know these), normally you'd have to use an estimate of that, based on your sample(s)
 # ?> question: what happens if I change sigma, or n? Are z, and p, going to be larger, smaller, or the same?
 
-
+# >>! important note: when estimating the mean from our sample when doing hypothesis testing, we don't consider the distribution of mean to be a perfect gaussian. 
+# >> Rather, we use a more conservative distribution that 
 
 
 
