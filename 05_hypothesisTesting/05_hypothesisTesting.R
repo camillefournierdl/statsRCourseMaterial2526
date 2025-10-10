@@ -3,27 +3,135 @@ library(patchwork)
 
 set.seed(123)
 
-# Confidence intervals & hypothesis testing: Student's t
+# Confidence Intervals & Hypothesis Testing (Student’s t)
 
-#### Confidence Intervals ####
+#### Toolbox with main functions ####
+
+##### Confidence Intervals #####
 
 ### One sample distribution: CIs of a mean
-# Assumes i.i.d. draws; uses t with length(x)-1 df and sd(x)/sqrt(n).
-ci <- t.test(iris$Sepal.Width, conf.level = 0.95)$conf.int
-ci
+# Assumes independent and identically distributed (i.d.d) draws; uses t with length(x)-1 df and sd(x)/sqrt(n).
+# t.test(x, conf.level = 0.95)
 
-# if you need to interact with it, like for plotting: 
-ci[1] # is the lower bound
-# what's the upper bound going to be?
+ci <- t.test(iris$Sepal.Width, conf.level = 0.95)$conf.int
+ci                        # [lower, upper]
+ci[1]; ci[2]              # extract bounds
 
 # equivalent to:
-n  <- length(iris$Sepal.Width)
-se <- sd(iris$Sepal.Width) / sqrt(n)
-m  <- mean(iris$Sepal.Width)
-half_width <- qt(0.975, df = n - 1) * se
-c(m - half_width, m + half_width)
+x  <- iris$Sepal.Width
+n  <- length(x)
+m  <- mean(x)
+se <- sd(x) / sqrt(n)
+tcrit <- qt(0.975, df = n - 1) # similar to qnorm we used last week, this time we use the student distribution instead of a normal distribution
+c(m - tcrit*se, m + tcrit*se)
 
 # >> already relevant: the ci is dependent on the distribution we want to draw the z-scores from (and the se calculation) -> assumptions!!
+
+### For a one-sample proportion
+# x = number of successes, n = trials
+# prop.test(x, n, conf.level = 0.95)$conf.int   # CI with continuity correction
+prop.test(1104, 1824, conf.level = 0.95)$conf.int   # >> look at the help function!
+
+### For a two-sample difference in mean
+# t.test(x1, x2, var.equal = FALSE)$conf.int
+x1 <- c(2, 7, 2, 8, 10, 5)
+x2 <- c(5, 8, 7, 9, 10, 10)
+
+# Welch CI (unequal variances, default)
+t.test(x1, x2, var.equal = FALSE)$conf.int
+
+# Student (pooled) CI
+t.test(x1, x2, var.equal = TRUE)$conf.int
+
+# Welch = no assumption of equal variance;
+# Student = assumes equal variance, slightly narrower CI if true.
+
+# paired t.test
+
+# Difference of paired observations, e.g. before vs after
+t.test(x1, x2, paired = TRUE)$conf.int
+# or
+t.test(x1 - x2)$conf.int   # equivalent
+# Assumes differences are approximately normal.
+
+##### Hypothesis Testing: Student’s t #####
+
+### One-sample t-test ###
+# Tests whether the sample mean differs from a hypothesized population mean (μtest)
+# Assumes i.i.d. draws and approximate normality of the sampling distribution.
+
+# t.test(x, mu = μtest)
+t.test(iris$Sepal.Width)   # H0: mean = 0, mean = 0, two-sided alternative by default
+t.test(iris$Sepal.Width, mu = 3)   # H0: mean = 3, two-sided alternative by default
+
+### Reading the output ###
+# Each t.test() call reports:
+#   t = test statistic
+#   df = degrees of freedom
+#   p-value = probability under H₀
+#   confidence interval = range of plausible values for the true difference
+#   sample estimates = sample means (and differences)
+#
+# Note: the CI and the p-value are two views of the same inference.
+# If the CI excludes μtest (or 0 for a difference), the p-value < α.
+
+# >> output includes:
+#   statistic = t_obs = (mean(x) - μtest) / (sd(x)/√n)
+#   parameter = degrees of freedom (n-1)
+#   p.value = P(|T| ≥ |t_obs|) under H0
+#   conf.int = the 95% CI for the mean (same as in previous section!)
+
+# Check a one-sided alternative:
+t.test(iris$Sepal.Width, mu = 3, alternative = "greater")  # H1: mean > 3
+t.test(iris$Sepal.Width, mu = 3, alternative = "less")     # H1: mean < 3
+
+# equivalent manual calculation
+x  <- iris$Sepal.Width
+n  <- length(x)
+m  <- mean(x)
+se <- sd(x)/sqrt(n)
+t_obs <- (m - 3)/se
+pval  <- 2*pt(-abs(t_obs), df = n-1)
+t_obs; pval
+
+### Two-sample t-tests ###
+# Compare means from two independent groups.
+# t.test(x1, x2, var.equal = FALSE)  -> Welch test (default, unequal variances)
+# t.test(x1, x2, var.equal = TRUE)   -> Student test (equal variances assumed)
+
+x1 <- c(2, 7, 2, 8, 10, 5)
+x2 <- c(5, 8, 7, 9, 10, 10)
+
+t.test(x1, x2)                           # Welch two-sided test
+t.test(x1, x2, var.equal = TRUE)         # Student (pooled) version
+
+# One-sided alternatives:
+t.test(x1, x2, alternative = "greater")  # H1: mean(x1) > mean(x2)
+t.test(x1, x2, alternative = "less")     # H1: mean(x1) < mean(x2)
+
+# Equivalent manual computation for Welch’s t
+# n1 <- length(x1); n2 <- length(x2)
+# s1 <- sd(x1); s2 <- sd(x2)
+# m1 <- mean(x1); m2 <- mean(x2)
+# SE_diff <- sqrt(s1^2/n1 + s2^2/n2)
+# t_obs <- (m1 - m2)/SE_diff
+# df_welch <- (s1^2/n1 + s2^2/n2)^2 /
+#   ((s1^2/n1)^2/(n1-1) + (s2^2/n2)^2/(n2-1))
+# pval <- 2*pt(-abs(t_obs), df = df_welch)
+# t_obs; df_welch; pval
+
+### Paired t-test ###
+# Used when observations are matched (before–after, twin studies, etc.)
+# Tests whether the mean difference (x1 - x2) is zero.
+
+before <- c(3.2, 4.1, 3.8, 3.5, 4.0)
+after  <- c(3.6, 4.4, 4.1, 3.7, 4.3)
+
+t.test(before, after, paired = TRUE)     # two-sided by default
+t.test(before, after, paired = TRUE, alternative = "greater")  # one-sided
+
+# >> what are the assumptions of all these different tests? t.test with var.equal = T, t.test with var.equal = F?
+# -> alternatives can be bootstraps, permutations, or non-parametric tests
 
 # bonus example of a bootstrap ci
 B <- 2000
@@ -31,17 +139,6 @@ boot_means <- replicate(B, mean(sample(iris$Sepal.Width, replace = TRUE)))
 quantile(boot_means, c(0.025, 0.975))         # Percentile CI
 # here is a great illustration of a permutation test for 2 samples: https://www.jwilber.me/permutationtest/
 
-### For a one-sample proportion
-# x = number of successes, n = trials
-# prop.test(x, n, conf.level = 0.95)$conf.int   # Wilson-ish (score) CI with continuity correction
-prop.test(1104, 1824, conf.level = 0.95)$conf.int   # >> look at the help function!
-
-### For a two-sample difference in mean
-# t.test(x1, x2, var.equal = FALSE)$conf.int    # Welch CI for μ1 - μ2
-t.test(c(2, 7, 2, 8, 10, 5), c(5, 8, 7, 9, 10, 10), var.equal = FALSE)$conf.int    # Welch CI for μ1 - μ2
-
-# >> what are the assumptions of all these different tests? t.test with var.equal = T, t.test with var.equal = F?
-# -> alternatives can be bootstraps, permutations, or non-parametric tests
 
 #### Comparing samples ####
 
@@ -234,13 +331,13 @@ p3 <- ggplot(null_dens, aes(x = t, y = density)) +
 wrap_plots(p0, p1, p2, p3, ncol = 2)
 
 # >> once we have understood the different steps going through this visualization, we can be more comfortable to just type in a t.test(sample1, sample2) line ;)....
-t.test(Sepal.Width ~ Species, data = dat2)
+t.test(irisData %>% #sample1
+         filter(Species == "versicolor") %>% 
+         pull(Sepal.Width),
+       irisData %>% #sample2
+         filter(Species == "virginica") %>% 
+         pull(Sepal.Width)
+)
 
-
-#### Other tests ####
-
-### Paired t.test ###
-
-### Proportion test ###
 
 

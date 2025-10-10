@@ -12,6 +12,58 @@ set.seed(123) # reproducibility
 # a tutorial on how to use ggplot:
 # > https://r4ds.hadley.nz/data-visualize.html
 
+#### Toolbox with main functions ####
+
+# pnorm(q, mean=0, sd=1, lower.tail=TRUE, log.p=FALSE)
+
+# Calculate the probability (or area under the curve / AUC) to the left of a normal distribution: 
+# default is mean = 0 and sd  = 1 -> z-distribution
+# Returns P(X <= q) for X ~ N(mean, sd)
+
+pnorm(1, lower.tail = FALSE)       # right-tail area at z = 1
+pnorm(-1) # this is equivalent to using the table you'll use 'by hand' -> this function works with symmetrically from the course's table
+
+pnorm(-1, mean = 0, sd = 3) # could edit the mean and sd argumments
+
+pnorm(1, lower.tail = F) # using the lower.tail = F argument, this is more similar to using the table (probability, or area under the curve, of a positive z-value)
+
+pnorm(2) - pnorm(-1)               # P(-1 < Z < 2)
+pnorm(70, mean=60, sd=10)          # no need to standardize by hand
+
+# dnorm(x, mean=0, sd=1, log=FALSE)
+# Returns the density (height) at x — not a probability
+dnorm(0) # can be used to plot the distribution of a normal distribution (can always manually set mean and sds) -> we use it with value ranging from -4 to 4, see:
+
+z <- seq(-4, 4, length.out = 100)
+pz <- dnorm(z) 
+
+plot(pz~z) # plot of N(0,1)
+
+# qnorm(p, mean=0, sd=1, lower.tail=TRUE, log.p=FALSE)
+# Quantile: z such that P(Z <= z) = p // Calculate a z-value for a probability
+# P(output < -1) = input 
+qnorm(0.5) # will give you the z-value corresponding to a certain probability (still considering the area under the curve of the left of that value, without using lower.tail = F)
+
+qnorm(0.95)
+qnorm(0.05) # is equal to the symetric z-value for a centered normal
+
+qnorm(c(0.025, 0.975))             # ≈ -1.96, 1.96 -> could use more than 1 argument
+
+qnorm(0.90, mean=100, sd=15)       # 90th percentile of N(100,15)
+
+# rnorm(n, mean=0, sd=1)
+# can be used to generate a random sample for a population that would follow a normal distribution of given mean and sd 
+# Random draws; set.seed() for reproducibility
+set.seed(123)
+
+rnorm(50) 
+
+hist(rnorm(100))
+
+hist(rnorm(10000))
+
+hist(rnorm(10000, mean = 20, sd = 10))
+
 #### 4.9 ####
 # For a normal distribution, verify that the probability between
 # (a) μ − σ and μ + σ equals 0.68.
