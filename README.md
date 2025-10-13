@@ -30,8 +30,6 @@ Camille Fournier de Lauriere ([cfournier@ethz.ch](mailto:cfournier@ethz.ch))
 
 ## 🎯 Learning objectives for the R practice.
 
-By the end of the course, you will be able to:
-
 1. How to use R and RStudio: General knowledge of the R language.
 2. Implementing examples from the course: all content covered in the theoretical sections will be
 exemplified in R.

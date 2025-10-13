@@ -65,21 +65,15 @@ t.test(iris$Sepal.Width)   # H0: mean = 0, mean = 0, two-sided alternative by de
 t.test(iris$Sepal.Width, mu = 3)   # H0: mean = 3, two-sided alternative by default
 
 ### Reading the output ###
-# Each t.test() call reports:
-#   t = test statistic
-#   df = degrees of freedom
-#   p-value = probability under H₀
-#   confidence interval = range of plausible values for the true difference
-#   sample estimates = sample means (and differences)
+# >> Each t.test() call reports:
+#   t = test statistic t_obs = (mean(x) - μtest) / (sd(x)/√n) for a test with equal variance
+#   df = degrees of freedom (n-1)
+#   p-value = probability under H₀ (P(|T| ≥ |t_obs|))
+#   confidence interval = range of plausible values, (the 95% CI for the mean or mean difference)
+#   sample estimates = sample means (or differences)
 #
 # Note: the CI and the p-value are two views of the same inference.
 # If the CI excludes μtest (or 0 for a difference), the p-value < α.
-
-# >> output includes:
-#   statistic = t_obs = (mean(x) - μtest) / (sd(x)/√n)
-#   parameter = degrees of freedom (n-1)
-#   p.value = P(|T| ≥ |t_obs|) under H0
-#   conf.int = the 95% CI for the mean (same as in previous section!)
 
 # Check a one-sided alternative:
 t.test(iris$Sepal.Width, mu = 3, alternative = "greater")  # H1: mean > 3
@@ -210,12 +204,12 @@ t.test(irisData %>% #sample1
 
 # >> it is fairly easy to run a t.test (welch, proportion, or other 1 or 2 sample, one or two sided tests)
 # >> what might be more complicated, is to understand what a test actually does. 
-# >> the following code, and resulting plots are meant to explore the concepts that range from
+# >> the following code, and resulting plots are meant to explore concepts that go from
 # >> the description of 2 plant samples (and the width of their sepal)
 # >> to the test statistic that evaluates how likely the two samples are coming from different populations.
 
 # >> I would like to spend some time discussing the final plot. If one concept is not clear to you, maybe the code can help clarify it. 
-# >> if the code doesn't help, you can talk to us, go back to Agresti, or use a ChatBot to explain it. With, or without the code.
+# >> if the code doesn't help, you can talk to us, go back to Agresti, or use a ChatBot to explain it.
 
 #### Visualizing how a t.test works #### 
 # pick the two species to compare
