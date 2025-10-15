@@ -1,5 +1,5 @@
 library(tidyverse)
-library(patchwork)
+library(patchwork) # for plotting 
 
 set.seed(123)
 
@@ -9,9 +9,14 @@ set.seed(123)
 
 ##### Confidence Intervals #####
 
+# here, we use the iris dataset as an example 
+iris
+
+plot(iris) # there are different species, but we will not consider this in the first part of the example
+
 ### One sample distribution: CIs of a mean
 # Assumes independent and identically distributed (i.d.d) draws; uses t with length(x)-1 df and sd(x)/sqrt(n).
-# t.test(x, conf.level = 0.95)
+# t.test(x, conf.level = 0.95) and extract the CI from the test object using $conf.int
 
 ci <- t.test(iris$Sepal.Width, conf.level = 0.95)$conf.int
 ci                        # [lower, upper]
@@ -23,7 +28,7 @@ n  <- length(x)
 m  <- mean(x)
 se <- sd(x) / sqrt(n)
 tcrit <- qt(0.975, df = n - 1) # similar to qnorm we used last week, this time we use the student distribution instead of a normal distribution
-c(m - tcrit*se, m + tcrit*se)
+c(m - tcrit*se, m + tcrit*se) # again, c is just a way to create a vector object that contains both numbers. Here we don't store it but just print it
 
 # >> already relevant: the ci is dependent on the distribution we want to draw the z-scores from (and the se calculation) -> assumptions!!
 
@@ -136,26 +141,24 @@ quantile(boot_means, c(0.025, 0.975))         # Percentile CI
 
 #### Comparing samples ####
 
-irisData <- iris
-
-plot(irisData)
+plot(iris)
 
 # compare populations
 
-irisData %>% 
+iris %>% 
   ggplot(aes(y = Sepal.Width, fill = Species))+
   geom_boxplot()
 
-irisData %>% 
+iris %>% 
   ggplot(aes(x = Sepal.Width, fill = Species))+
   geom_histogram(position = "identity")+
   facet_wrap(~Species, nrow = 3)
 
-means <- irisData %>% 
+means <- iris %>% 
   group_by(Species) %>% 
   summarise(m = mean(Sepal.Width, na.rm = TRUE))
 
-irisData %>% 
+iris %>% 
   ggplot(aes(x = Sepal.Width, fill = Species)) +
   geom_histogram(position = "identity", alpha = 0.9) +
   facet_wrap(~Species, nrow = 3, scales = "free_y") +
@@ -168,35 +171,35 @@ irisData %>%
 # use the help to look at what t.test() does (e.g. what is the default behavior & assumptions? paired samples? equal variance?)
 # >> t.test isn't actually a simple student t-test by default...
 
-t.test(irisData %>% #sample1
+t.test(iris %>% #sample1
          filter(Species == "versicolor") %>% 
          pull(Sepal.Width),
-       irisData %>% #sample2
+       iris %>% #sample2
          filter(Species == "virginica") %>% 
          pull(Sepal.Width)
        )
 
-t.test(irisData %>% #sample1
+t.test(iris %>% #sample1
          filter(Species == "virginica") %>% 
          pull(Sepal.Width),
-       irisData %>% #sample2
+       iris %>% #sample2
          filter(Species != "virginica") %>% 
          pull(Sepal.Width)
 )
 
-t.test(irisData %>% #sample1
+t.test(iris %>% #sample1
          filter(Species == "virginica") %>% 
          pull(Sepal.Width),
-       irisData %>% #sample2
+       iris %>% #sample2
          filter(Species != "virginica") %>% 
          pull(Sepal.Width),
        alternative = "greater"
 )
 
-t.test(irisData %>% #sample1
+t.test(iris %>% #sample1
          filter(Species == "virginica") %>% 
          pull(Sepal.Width),
-       irisData %>% #sample2
+       iris %>% #sample2
          filter(Species != "virginica") %>% 
          pull(Sepal.Width),
        alternative = "less"
@@ -215,7 +218,7 @@ t.test(irisData %>% #sample1
 # pick the two species to compare
 pair <- c("virginica","versicolor")
 
-dat2 <- irisData %>% filter(Species %in% pair)
+dat2 <- iris %>% filter(Species %in% pair)
 
 # Welch t-test on Sepal.Width
 t.test(Sepal.Width ~ Species, data = dat2)
@@ -325,10 +328,10 @@ p3 <- ggplot(null_dens, aes(x = t, y = density)) +
 wrap_plots(p0, p1, p2, p3, ncol = 2)
 
 # >> once we have understood the different steps going through this visualization, we can be more comfortable to just type in a t.test(sample1, sample2) line ;)....
-t.test(irisData %>% #sample1
+t.test(iris %>% #sample1
          filter(Species == "versicolor") %>% 
          pull(Sepal.Width),
-       irisData %>% #sample2
+       iris %>% #sample2
          filter(Species == "virginica") %>% 
          pull(Sepal.Width)
 )
