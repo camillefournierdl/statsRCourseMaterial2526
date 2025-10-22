@@ -30,7 +30,7 @@ se <- sd(x) / sqrt(n)
 tcrit <- qt(0.975, df = n - 1) # similar to qnorm we used last week, this time we use the student distribution instead of a normal distribution
 c(m - tcrit*se, m + tcrit*se) # again, c is just a way to create a vector object that contains both numbers. Here we don't store it but just print it
 
-# >> already relevant: the ci is dependent on the distribution we want to draw the z-scores from (and the se calculation) -> assumptions!!
+# >> already relevant: the ci is dependent on the distribution we want to draw the z(or t, or something else)-scores from (and the se calculation) -> assumptions!!
 
 ### For a one-sample proportion
 # x = number of successes, n = trials
@@ -238,7 +238,8 @@ p0 <- dat2 %>%
   geom_vline(data = summ, aes(xintercept = mean, colour = Species),
              linetype = "dashed", linewidth = 1)+
   labs(title= "Descriptives: Actual Data from the sample for 2 species",
-       y = "Count")
+       y = "Count") +
+  theme_minimal()
 
 p0
 
@@ -253,11 +254,30 @@ mean_dens <- summ %>%
 p1 <- ggplot(mean_dens, aes(x = x, y = density, color = Species)) +
   geom_line(linewidth = 1) +
   geom_vline(data = summ, aes(xintercept = mean, color = Species), linetype = "dashed") +
-  labs(title = "Inference: Sampling distribution of the mean (per species)\n-> using the t distribution (could show CIs)",
+  labs(title = "Inference: Sampling distribution of the mean (per species)\n-> using the t distribution for each sample (could show CIs)",
        x = "Sepal.Width (mean scale)", y = "Density") +
   theme_minimal()
 
 p1
+
+
+# ### optional: plotting the CIs calculated for each sample (each have their own se, degrees of freedom, etc)
+# 
+# # compute 95% t-based CIs (updates your existing `summ`)
+# summ <- summ %>%
+#   mutate(tcrit = qt(0.975, df),      # two-sided 95% -> 0.975
+#          ci_half = tcrit * se,
+#          lower = mean - ci_half,
+#          upper = mean + ci_half)
+# 
+# # add CI endpoints as dotted vertical lines to the existing p1
+# p1_with_cis <- p1 +
+#   geom_vline(data = summ, aes(xintercept = lower, color = Species), linetype = "dotted", linewidth = 1.5) +
+#   geom_vline(data = summ, aes(xintercept = upper, color = Species), linetype = "dotted", linewidth = 1.5)
+# 
+# # show it
+# p1_with_cis
+
 
 # 2) Sampling distribution of the mean difference (Welch):
 #    D = (m1 - m2) + t * SE_diff,  df = Welch-Satterthwaite
@@ -301,6 +321,11 @@ p2 <- ggplot(diff_dens, aes(x = x, y = density)) +
 
 p2
 
+## again, compare with the t.test from the function:
+t.test(Sepal.Width ~ Species, data = dat2)   
+
+
+
 t_obs <- diff_hat / SE_diff
 pval  <- 2 * pt(-abs(t_obs), df = df_welch)
 
@@ -327,7 +352,7 @@ p3 <- ggplot(null_dens, aes(x = t, y = density)) +
 
 wrap_plots(p0, p1, p2, p3, ncol = 2)
 
-# >> once we have understood the different steps going through this visualization, we can be more comfortable to just type in a t.test(sample1, sample2) line ;)....
+# >> once we have understood the different steps going through this visualization, we can be more comfortable with typing: t.test(sample1, sample2) line ;)....
 t.test(iris %>% #sample1
          filter(Species == "versicolor") %>% 
          pull(Sepal.Width),
