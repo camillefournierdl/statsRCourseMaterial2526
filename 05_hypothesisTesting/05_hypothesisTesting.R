@@ -212,6 +212,29 @@ t.test(iris %>% #sample1
        alternative = "less"
 )
 
+#### Proportion test with 2 samples ####
+
+## Two sample proportion test
+titanicDataset <- as.data.frame(Titanic)
+
+# here I take my dataset and calculate the number of survivors and total number of people for Male and Female
+proportionDataset <- titanicDataset %>% 
+  group_by(Sex) %>% 
+  summarize(totalNumber = sum(Freq),
+            survived = sum(Freq[Survived == "Yes"]))
+
+# put the numbers into specific objects using filter
+survived_male <- proportionDataset %>% filter(Sex == "Male") %>% pull(survived)
+total_male <- proportionDataset %>% filter(Sex == "Male") %>% pull(totalNumber)
+survived_female <- proportionDataset %>% filter(Sex == "Female") %>% pull(survived)
+total_female <- proportionDataset %>% filter(Sex == "Female") %>% pull(totalNumber)
+
+# Perform the two-sample proportion test
+prop.test(x = c(survived_male, survived_female), 
+          n = c(total_male, total_female), 
+          alternative = "two.sided") # here I keep the alternative attribute but it is the default anyway
+
+
 # >> it is fairly easy to run a t.test (welch, proportion, or other 1 or 2 sample, one or two sided tests)
 # >> what might be more complicated, is to understand what a test actually does. 
 # >> the following code, and resulting plots are meant to explore concepts that go from
