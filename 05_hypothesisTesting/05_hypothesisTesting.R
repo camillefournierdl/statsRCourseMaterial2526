@@ -66,8 +66,8 @@ t.test(x1 - x2)$conf.int   # equivalent
 # Assumes i.i.d. draws and approximate normality of the sampling distribution.
 
 # t.test(x, mu = μtest)
-t.test(iris$Sepal.Width)   # H0: mean = 0, mean = 0, two-sided alternative by default
-t.test(iris$Sepal.Width, mu = 3)   # H0: mean = 3, two-sided alternative by default
+t.test(iris$Sepal.Width)   # H0: mean = 0, two-sided alternative by default
+t.test(iris$Sepal.Width, mu = 2.99)   # H0: mean = 3, two-sided alternative by default
 
 ### Reading the output ###
 # >> Each t.test() call reports:
@@ -138,6 +138,13 @@ boot_means <- replicate(B, mean(sample(iris$Sepal.Width, replace = TRUE)))
 quantile(boot_means, c(0.025, 0.975))         # Percentile CI
 # here is a great illustration of a permutation test for 2 samples: https://www.jwilber.me/permutationtest/
 
+# proportion tests:
+prop.test(1104, 1824, conf.level = 0.95)
+prop.test(523, 1155, conf.level = 0.95)
+
+# two-sample proportion test
+# prop.test(c(nYesGrp1, nYesGrp2), c(nTotalGrp1, nTotalGrp2), conf.level = 0.95)
+prop.test(c(523, 300), c(1155, 650), conf.level = 0.95)
 
 #### Comparing samples ####
 
