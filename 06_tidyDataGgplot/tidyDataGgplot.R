@@ -38,6 +38,8 @@ mtcars # is this a long-format dataset?
 irisModified <- iris %>% 
   rename(petalLength = Petal.Length)
 
+## tip! you can use Ctrl+Shift+M to print a pipe
+
 # create a column
 irisModified <- iris %>% 
   mutate(ratioPetalSepalLength = Petal.Length/Sepal.Length)
@@ -65,22 +67,32 @@ irisModified <- iris %>%
   
 
 # merge datasets together
+# example, do not run
+dfMerged <- merge(df1, df2, by = "columnid", all.x = T, all.y = T) # this would be a full merge, what's the default behavior?
+
+# now we merge colors to the irisSummary data
 dfCol <- data.frame(species = c("setosa", "versicolor", "virginica", "other"),
                  color = c("purple", "yellow", "green", "grey"))
 
-# here, the names of the Species variables are not written with the same capitalization
+# here, the name of the Species column is not written with the same capitalization
 # a solution is to use dplyr to rename the column in dfCol 
-dfMerged <- merge(df1, df2, by = "columnid", all.x = T, all.y = T) # this would be a full merge, what's the default behavior?
 
 irisMerged <- merge(irisSummary, dfCol %>% 
-                      rename(Species = species),
+                      rename(Species = species), # see how we rename first
                     by = "Species", all.x = T, all.y = T) # also full merge
+
+irisMerged
 
 irisMerged2 <- merge(irisSummary, dfCol %>% 
                       rename(Species = species),
                     by = "Species", all.x = T, all.y = F) # left merge (more common, default behavior)
 
-# use it all together, think about how to make the plots described in the slides
+irisMerged2
+
+# make sure you understand the difference between irisMerged and irisMerged2
+
+
+#> use it all together, think about how to make the plots described in the slides
 
 band_members
 band_instruments
