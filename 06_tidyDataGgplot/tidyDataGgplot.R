@@ -78,9 +78,9 @@ irisSimplified <- iris %>%
 irisSetosa <- iris %>% 
   filter(Species == "setosa")
 
-# calculate summary statistics
+# calculate summary statistics for different groups
 irisSummary <- iris %>% 
-  group_by(Species) %>% 
+  group_by(Species) %>% # grouping variable, summaries will be calculated for every level of that variables (works with multiple variables)
   summarize(mean_sepalLength = mean(Sepal.Length, na.rm=T),
             sd_sepalLength = sd(Sepal.Length, na.rm=T))
 
@@ -93,7 +93,7 @@ irisModified <- iris %>%
   
 # merge datasets together (actually from base, but is more intuitive than the dplyr options I.M.O)
 # example, do not run
-dfMerged <- merge(df1, df2, by = "columnid", all.x = T, all.y = T) # this would be a full merge, what's the default behavior?
+dfMerged <- merge(df1, df2, by = "columnid", all.x = T, all.y = T) # this would be a full merge, what's the default behavior? it is full because we keep all rows in x (df1) and y (df2)
 
 # now we merge colors to the irisSummary data
 dfCol <- data.frame(species = c("setosa", "versicolor", "virginica", "other"),
@@ -101,6 +101,7 @@ dfCol <- data.frame(species = c("setosa", "versicolor", "virginica", "other"),
 
 # here, the name of the Species column is not written with the same capitalization
 # a solution is to use dplyr to rename the column in dfCol 
+# see how we do the rename pipe inside the merge function, which means we do not need to create a new object, dfCol is not modified in the memory
 
 irisMerged <- merge(irisSummary, dfCol %>% 
                       rename(Species = species), # see how we rename first
@@ -175,6 +176,14 @@ ESS9_CH_filt <- ESS9_CH_proj %>%
 ESS9_CH_filt %>% 
   ggplot(aes(x = safety, y = trustPol, group = safety))+
   geom_boxplot()
+
+# (or do the following for every plot)
+# ESS9_CH_proj %>% 
+#   filter(trustPol <= 10) %>% 
+#   filter(party < 17) %>% 
+#   filter(safety <= 4) %>% 
+#   ggplot(aes(x = safety, y = trustPol, group = safety))+
+#   geom_boxplot()
 
 ESS9_CH_filt %>% 
   group_by(safety) %>% 
