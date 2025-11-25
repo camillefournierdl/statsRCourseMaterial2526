@@ -1,4 +1,6 @@
 library(tidyverse)
+library(sjPlot) # used to plot interactions
+library(sjmisc) # used to plot interactions
 
 theme_set(theme_minimal()) # set default theme for the session
 
@@ -7,7 +9,7 @@ ESS9_CH <- read.csv("ESSData/ESS9_CH.csv") # replace with relevant dataset for y
 
 # select columns 
 ESS9_CH_proj <- ESS9_CH %>% 
-  select(agea, trstprt, aesfdrk, gndr) #  trstprt - Trust in political parties --  aesfdrk - Feeling of safety of walking alone in local area after dark 
+  select(agea, trstprt, aesfdrk, gndr, marsts) # we use similar examples to the tutorial for dplyr, adding gender and marital status
 
 ESS9_CH_proj %>% plot()
 
@@ -55,37 +57,6 @@ summary(lmGender) # how to interpret the output for gender? -> check codebook fo
 lmComplex<- lm(safety~age+gender+trustPol, data = ESS9_CH_filt)
 summary(lmComplex) #
 
-## predicted probabilities:
-
-# library(emmeans) to delete, not really what I want
-# 
-# emm <- emmeans(lmComplex, ~ age, at = list(age = seq(20, 80, by = 10)))
-# plot(emm)
-# 
-# emm <- emmeans(
-#   lmComplex,
-#   ~ age,
-#   at = list(
-#     age = seq(20, 80, by = 10),
-#     gender = 1,
-#     trustPol = mean(ESS9_CH_filt$trustPol)
-#   )
-# )
-# 
-# plot(emm)
-# 
-# emFemale <- emmeans(
-#   lmComplex,
-#   ~ age,
-#   at = list(
-#     age = seq(20, 80, by = 10),
-#     gender = 2,
-#     trustPol = mean(ESS9_CH_filt$trustPol)
-#   )
-# )
-# 
-# plot(emFemale)
-
 # now we do the same with an interaction between age and gender:
 
 lmInteraction <- lm(safety~age*gender+trustPol, data = ESS9_CH_filt) # star is the equivalent of both + and :
@@ -93,5 +64,15 @@ lmInteraction <- lm(safety~age+gender+age:gender+trustPol, data = ESS9_CH_filt)
 
 summary(lmInteraction)
 
-# predicted probabilities
+plot_model(lmInteraction, type = "pred", terms = c("gender", "age"))
 
+# and between age and trustPol, to test
+
+lmInteraction2 <- lm(safety~age+gender+age:gender+trustPol+age:trustPol, data = ESS9_CH_filt)
+summary(lmInteraction2)
+
+plot_model(lmInteraction2, type = "pred", terms = c("trustPol", "age"))
+
+# more on predicted probabilities next week
+# + could experiment with the marsts variable to play with dummies (currenltly it would be considered a continuous variable in a lm)
+# would need to re-code a column as a factor with different levels, e.g. using ifelse() or mutate()
