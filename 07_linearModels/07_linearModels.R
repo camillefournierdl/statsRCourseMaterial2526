@@ -74,5 +74,5 @@ summary(lmInteraction2)
 plot_model(lmInteraction2, type = "pred", terms = c("trustPol", "age"))
 
 # more on predicted probabilities next week
-# + could experiment with the marsts variable to play with dummies (currenltly it would be considered a continuous variable in a lm)
+# + could experiment with the marsts variable to play with dummies (currently it would be considered a continuous variable in a lm)
 # would need to re-code a column as a factor with different levels, e.g. using ifelse() or mutate()
