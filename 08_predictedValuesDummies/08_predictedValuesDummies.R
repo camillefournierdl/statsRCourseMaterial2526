@@ -103,6 +103,91 @@ anova(example2) # this tells us that education has an effect but we can't tell i
 emm_example2 <- emmeans(example2, ~ edu_f)          # estimated marginal means
 pairs(emm_example2, adjust = "tukey")                # Tukey pairwise tests
 
+##### ------- export regression tables with stargazer------- ######
+
+library(stargazer)
+##Multple Regression - base model
+base <- lm(confidencePolitics ~ newsPol, data = ESS9_CH_filt) 
+summary(base)
+
+####Multple Regression with Age transformation
+ESS9_CH_filt$age2<-ESS9_CH_filt$age*ESS9_CH_filt$age
+
+age_2 <- lm(confidencePolitics ~ newsPol + age + age2, data = ESS9_CH_filt) 
+summary(age_2)
+
+####Multple Regression with controls
+#same as above
+full <- lm(confidencePolitics ~ newsPol + age + age2 + income + gender, data = ESS9_CH_filt) 
+summary(full)
+
+###Full model with Education
+#same as above but with age
+full_educ <- lm(confidencePolitics ~ newsPol + age + age2 + income + gender + education, data = ESS9_CH_filt) 
+summary(full_educ)
+
+##Export to HTML
+stargazer(base, age_2, full, full_educ,
+          title="Stats I Multiple Regression Example",
+          dep.var.labels="Confidence in politics",
+          omit.stat=c("LL","ser","f"),
+          align=TRUE,
+          digits=2,
+          covariate.labels=c("Political News", "Age", "Age$^{2}$","Income", "Gender",  "Education"),
+          keep.stat=c("aic", "bic","rsq", "n","adj.rsq"),
+          type="text", 
+          out="08_predictedValuesDummies/multi.txt")
+
+#Add in AIC and BIC
+base$AIC<-AIC(base)
+age_2$AIC<-AIC(age_2)
+full$AIC<-AIC(full)
+full_educ$AIC<-AIC(full_educ)
+
+base$BIC<-BIC(base)
+age_2$BIC<-BIC(age_2)
+full$BIC<-BIC(full)
+full_educ$BIC<-BIC(full_educ)
+
+stargazer(base, age_2, full, full_educ,
+          title="Stats I Multiple Regression Example",
+          dep.var.labels="Confidence in politics",
+          omit.stat=c("LL","ser","f"),
+          align=TRUE,
+          digits=2,
+          covariate.labels=c("Political News", "Age", "Age$^{2}$","Income", "Gender",  "Education"),
+          keep.stat=c("aic", "bic","rsq", "n","adj.rsq"),  #add in AIC BIC
+          type="text",
+          out="08_predictedValuesDummies/multi_modelfit.txt")
+
+
+##Display CIs instead of SEs
+stargazer(base, age_2, full, full_educ,
+          title="Stats I Multiple Regression Example with CIs",
+          dep.var.labels="Confidence in politics",
+          omit.stat=c("LL","ser","f"),
+          align=TRUE,
+          digits=2,
+          covariate.labels=c("Political News", "Age", "Age$^{2}$","Income", "Gender",  "Education"),
+          keep.stat=c("aic", "bic","rsq", "n","adj.rsq"), 
+          ci=TRUE, ci.level=0.95, #add in CIs
+          type="text",
+          out="08_predictedValuesDummies/multi_CIs.txt")
+
+##Display CIs instead of SEs
+stargazer(base, age_2, full, full_educ,
+          title="Stats I Multiple Regression Example with CIs",
+          dep.var.labels="Confidence in politics",
+          omit.stat=c("LL","ser","f"),
+          align=TRUE,
+          digits=2,
+          covariate.labels=c("Political News", "Age", "Age$^{2}$","Income", "Gender",  "Education"),
+          keep.stat=c("aic", "bic","rsq", "n","adj.rsq"), 
+          ci=TRUE, ci.level=0.95, #add in CIs
+          type="html", #change to html
+          out="08_predictedValuesDummies/multi_CIs.html")
+
+
 ##### ------- predicted values ------- ######
 
 # for one categorical variable
