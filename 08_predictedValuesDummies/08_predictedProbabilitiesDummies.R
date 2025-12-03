@@ -1,3 +1,6 @@
+# In this last session, we look at group comparisons using anova and tukey tests, dummy variables, predicted values, and using stargazer to compare model specifications.
+# You can look for the specific parts that are relevant for your project using the different sections of the code
+
 ##### ------- setup ------- ######
 
 library(tidyverse)
@@ -69,6 +72,7 @@ ESS9_CH_filt %>%
 # too many categories! I want to simplify this
 
 ##### ------- recoding into dummy ------- ######
+
 # I often use ifelse statements:
 ESS9_CH_filt$edu_f <- ifelse(ESS9_CH_filt$education %in% c(1,2), "secondary", "other") # simple example
 
@@ -99,6 +103,67 @@ anova(example2) # this tells us that education has an effect but we can't tell i
 emm_example2 <- emmeans(example2, ~ edu_f)          # estimated marginal means
 pairs(emm_example2, adjust = "tukey")                # Tukey pairwise tests
 
+##### ------- predicted values ------- ######
+
+# for one categorical variable
+emm_example2 <- emmeans(example2, ~ edu_f)
+
+emm_df <- as.data.frame(emm_example2)
+
+ggplot(emm_df, aes(x = edu_f, y = emmean)) +
+  geom_point(size = 3) +
+  geom_errorbar(aes(ymin = lower.CL, ymax = upper.CL), width = .1) +
+  labs(y = "Adjusted mean confidence",
+       x = "Education level")
+
+# for one variable
+emm_example2 <- emmeans(example2, ~ newsPol)
+
+emm_df <- as.data.frame(emm_example2)
+
+ggplot(emm_df, aes(x = newsPol, y = emmean)) +
+  geom_point(size = 3) +
+  geom_errorbar(aes(ymin = lower.CL, ymax = upper.CL), width = .1) +
+  labs(y = "Adjusted mean confidence",
+       x = "Education level")
+
+
+# for more variables, you can draw scenarios, here I show an example where we vary gender and news consumption
+
+# we define a baseline and then edit the scenarios. You should choose a *meaningful* baseline level for each variable (e.g., 0, median, or mean)
+baseline <- data.frame(
+  age    = mean(ESS9_CH_filt$age, na.rm = TRUE),
+  income = mean(ESS9_CH_filt$income, na.rm = TRUE),
+  edu_f  = "2 upper secondary",                 # pick an appropriate reference level, here, no interactions so it will be the same effect
+  gender = 1, # could also test for 2, or look at the interaction between the 2!
+  newsPol = mean(ESS9_CH_filt$newsPol, na.rm = TRUE) # will fill in different scenarios
+)
+
+# here we use quantiles to draw the scenarios, it would normally make sense to look at the distribution of the variable of interest and decide based on this
+news_low  <- quantile(ESS9_CH_filt$newsPol, 0.05, na.rm = TRUE)
+news_high <- quantile(ESS9_CH_filt$newsPol, 0.95, na.rm = TRUE)
+
+scenarios <- rbind(
+  transform(baseline, gender = 1, newsPol = news_low,  scenario = "Low news use - Male"),
+  transform(baseline, gender = 1, newsPol = news_high, scenario = "High news use - Male"),
+  transform(baseline, gender = 2, newsPol = news_low, scenario = "Low news use - Female"),
+  transform(baseline, gender = 2, newsPol = news_high, scenario = "High news use - Female")
+)
+
+example3 <- lm(confidencePolitics ~ age + income + edu_f + gender * newsPol, data = ESS9_CH_filt) 
+summary(example3)
+
+pred <- cbind(
+  scenarios,
+  predict(example3, newdata = scenarios, interval = "confidence")
+)
+
+ggplot(pred, aes(x = scenario, y = fit)) +
+  geom_point(size = 3) +
+  geom_errorbar(aes(ymin = lwr, ymax = upr), width = .15) +
+  labs(x = NULL, y = "Predicted confidence in participating in politics")
+
+##### ------- using stargazer to compare models ------- ######
 
 
 # example of interaction plot (reminder from last week)
