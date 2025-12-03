@@ -103,7 +103,7 @@ anova(example2) # this tells us that education has an effect but we can't tell i
 emm_example2 <- emmeans(example2, ~ edu_f)          # estimated marginal means
 pairs(emm_example2, adjust = "tukey")                # Tukey pairwise tests
 
-##### ------- export regression tables with stargazer------- ######
+##### ------- export regression tables with stargazer ------- ######
 
 library(stargazer)
 ##Multple Regression - base model
@@ -129,7 +129,7 @@ summary(full_educ)
 ##Export to HTML
 stargazer(base, age_2, full, full_educ,
           title="Stats I Multiple Regression Example",
-          dep.var.labels="Confidence in politics",
+          dep.var.labels="Confidence in ability to participate in politics",
           omit.stat=c("LL","ser","f"),
           align=TRUE,
           digits=2,
@@ -151,7 +151,7 @@ full_educ$BIC<-BIC(full_educ)
 
 stargazer(base, age_2, full, full_educ,
           title="Stats I Multiple Regression Example",
-          dep.var.labels="Confidence in politics",
+          dep.var.labels="Confidence in ability to participate in politics",
           omit.stat=c("LL","ser","f"),
           align=TRUE,
           digits=2,
@@ -164,7 +164,7 @@ stargazer(base, age_2, full, full_educ,
 ##Display CIs instead of SEs
 stargazer(base, age_2, full, full_educ,
           title="Stats I Multiple Regression Example with CIs",
-          dep.var.labels="Confidence in politics",
+          dep.var.labels="Confidence in ability to participate in politics",
           omit.stat=c("LL","ser","f"),
           align=TRUE,
           digits=2,
@@ -177,7 +177,7 @@ stargazer(base, age_2, full, full_educ,
 ##Display CIs instead of SEs
 stargazer(base, age_2, full, full_educ,
           title="Stats I Multiple Regression Example with CIs",
-          dep.var.labels="Confidence in politics",
+          dep.var.labels="Confidence in ability to participate in politics",
           omit.stat=c("LL","ser","f"),
           align=TRUE,
           digits=2,
@@ -186,7 +186,6 @@ stargazer(base, age_2, full, full_educ,
           ci=TRUE, ci.level=0.95, #add in CIs
           type="html", #change to html
           out="08_predictedValuesDummies/multi_CIs.html")
-
 
 ##### ------- predicted values ------- ######
 
@@ -200,18 +199,6 @@ ggplot(emm_df, aes(x = edu_f, y = emmean)) +
   geom_errorbar(aes(ymin = lower.CL, ymax = upper.CL), width = .1) +
   labs(y = "Adjusted mean confidence",
        x = "Education level")
-
-# for one variable
-emm_example2 <- emmeans(example2, ~ newsPol)
-
-emm_df <- as.data.frame(emm_example2)
-
-ggplot(emm_df, aes(x = newsPol, y = emmean)) +
-  geom_point(size = 3) +
-  geom_errorbar(aes(ymin = lower.CL, ymax = upper.CL), width = .1) +
-  labs(y = "Adjusted mean confidence",
-       x = "Education level")
-
 
 # for more variables, you can draw scenarios, here I show an example where we vary gender and news consumption
 
@@ -247,8 +234,6 @@ ggplot(pred, aes(x = scenario, y = fit)) +
   geom_point(size = 3) +
   geom_errorbar(aes(ymin = lwr, ymax = upr), width = .15) +
   labs(x = NULL, y = "Predicted confidence in participating in politics")
-
-##### ------- using stargazer to compare models ------- ######
 
 
 # example of interaction plot (reminder from last week)
