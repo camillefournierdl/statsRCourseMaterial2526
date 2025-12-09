@@ -1,0 +1,4 @@
+https://allendowney.blogspot.com/2011/05/there-is-only-one-test.html # hypothesis testing
+https://r4ds.hadley.nz/data-visualize.html # r data visualisation (ggplot)
+https://rpubs.com/mkell009/BSC2011L_Lab-7 # hypothesis testing
+https://www.jwilber.me/permutationtest/ # permutation tests
